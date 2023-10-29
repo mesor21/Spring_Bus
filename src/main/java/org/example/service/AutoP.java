@@ -7,6 +7,7 @@ import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.springframework.scheduling.annotation.Async;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,13 +31,11 @@ public class AutoP
     }
 
 
-    //добавление в массив
     public void addBus(Bus newBus) {
         arrayList.add(newBus);
     }
 
 
-    //удаление из массива
     public void removeBus(long index)
     {
         for (int i = 0; i < arrayList.size(); i++)
@@ -48,13 +47,11 @@ public class AutoP
     }
 
 
-    //получение массива
     public ArrayList<Bus> getBusAll() {
         return arrayList;
     }
 
 
-    //получение элемента из массива
     public Bus getBus(int index)
     {
         for (Bus bus : arrayList)
@@ -66,14 +63,8 @@ public class AutoP
         }
         return null;
     }
-
-
-
-    //запись в формате XML
     public Object record(String fileName) throws IOException {
         System.out.println(arrayList);
-
-        // Создаем новый документ JDOM
         Document doc = new Document();
         Element root = new Element("autoPark");
         doc.setRootElement(root);
@@ -89,11 +80,9 @@ public class AutoP
             busElement.setAttribute("Cap", String.valueOf(bus.getCapacity()));
             busElement.setAttribute("CurrentAmount", String.valueOf(bus.getCurrentAmount()));
 
-            // Добавляем элемент Bus к корневому элементу autoPark
             root.addContent(busElement);
         }
 
-        // Документ JDOM сформирован и готов к записи в файл
         XMLOutputter xmlWriter = new XMLOutputter(Format.getPrettyFormat());
 
         try (FileOutputStream fileOutputStream = new FileOutputStream("Bus.xml")) {
@@ -105,12 +94,7 @@ public class AutoP
         return doc;
     }
 
-
-
-    //чтение файла XML
     public ArrayList<Bus> giveElement(String fileName) throws JDOMException, IOException {
-        // В этом методе, вам не нужно создавать DocumentBuilderFactory и DocumentBuilder для JDOM.
-        // Вы уже используете JDOM SAXBuilder, поэтому используйте его.
 
         SAXBuilder saxBuilder = new SAXBuilder();
         try {
@@ -133,29 +117,29 @@ public class AutoP
                 }
             }
         } catch (JDOMException | IOException e) {
-            // Обработка ошибок, если они возникнут при чтении XML
         }
 
         return arrayList;
     }
 
-    //размер массива
     public int size() {
         return  arrayList.size();
     }
-    //процентиль
-    public double percentile(List<Double> values, double percentile) throws IOException {
 
-        System.out.println("Введите процентиль: ");
-        percentile = System.in.read();
-
-        ArrayList<Integer> passengerCounts = new ArrayList<Integer>();
-        for (Bus bus : arrayList) {
-            passengerCounts.add(bus.getCurrentAmount());
+    @Async
+    public double calculatePercentile(double percentile) {
+        List<Bus> sortedbusAll = getBusAll();
+        double output = 0;
+        if (sortedbusAll.size() != 0) {
+            Collections.sort(sortedbusAll, (user1, user2) -> Integer.compare(user1.getCapacity(), user2.getCapacity()));
+            List<Integer> messageCounts = new ArrayList<>();
+            for (Bus user : sortedbusAll) {
+                messageCounts.add(user.getCapacity());
+            }
+            int index = (int) (percentile * (messageCounts.size() - 1));
+            int percentileValue = messageCounts.get(index);
+            output =(double) percentileValue;
         }
-        Collections.sort (values);
-        int index = (int) Math.ceil (percentile / 100.0 * values.size ());
-        return values.get (index - 1);
+        return output;
     }
-
 }

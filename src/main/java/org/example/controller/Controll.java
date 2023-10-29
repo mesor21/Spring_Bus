@@ -114,9 +114,6 @@ public class Controll
         }
     }
 
-
-
-
     @GetMapping("/read")
     @ResponseStatus(code = HttpStatus.OK)
     public ArrayList<Bus> readInfo () throws IOException, JDOMException {
@@ -125,16 +122,9 @@ public class Controll
 
     //получение всего массива
     @GetMapping("/perL/{percentile}")
-    public double percentile(@RequestParam List<Double> values, @RequestParam double percentile) throws IOException
+    public double percentile(@RequestParam double percentile) throws IOException
     {
-        ArrayList<Integer> passengerCounts = new ArrayList<Integer>();
-        for (Bus bus : AutoP.arrayList)
-        {
-            passengerCounts.add(bus.getCurrentAmount());
-        }
-        Collections.sort(values);
-        int index = (int) Math.ceil(percentile / 100.0 * values.size());
-        return values.get(index - 1);
+        return AutoP.calculatePercentile(percentile);
 
     }
 }
