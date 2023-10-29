@@ -122,9 +122,7 @@ public class Controll
 
     //получение всего массива
     @GetMapping("/perL/{percentile}")
-    public double percentile(@RequestParam double percentile) throws IOException
-    {
+    public double percentile(@PathVariable int percentile) throws IOException, JDOMException {
         return AutoP.calculatePercentile(percentile);
-
     }
 }

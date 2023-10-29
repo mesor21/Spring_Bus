@@ -58,13 +58,11 @@ public class Bus {
         this.sitPassangers = sitPassangers;
     }
 
-    public int getCapacity()
-    {
+    public int getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(int capacity)
-    {
+    public void setCapacity(int capacity) {
         this.capacity = capacity;
     }
 

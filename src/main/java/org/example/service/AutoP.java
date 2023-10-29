@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import org.example.model.Bus;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -8,6 +9,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.springframework.scheduling.annotation.Async;
+
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,8 +22,7 @@ import java.util.List;
 public class AutoP
 {
     public ArrayList<Bus> arrayList = new ArrayList<>();
-
-
+    String fileName = "src/main/resources/Bus.xml";
     public AutoP(ArrayList<Bus> arrayList) {
         this.arrayList = arrayList;
     }
@@ -35,7 +36,9 @@ public class AutoP
         arrayList.add(newBus);
     }
 
-
+    public List<Bus> getBusAll(){
+        return arrayList;
+    }
     public void removeBus(long index)
     {
         for (int i = 0; i < arrayList.size(); i++)
@@ -45,12 +48,6 @@ public class AutoP
                 break;
             }
     }
-
-
-    public ArrayList<Bus> getBusAll() {
-        return arrayList;
-    }
-
 
     public Bus getBus(int index)
     {
@@ -85,7 +82,7 @@ public class AutoP
 
         XMLOutputter xmlWriter = new XMLOutputter(Format.getPrettyFormat());
 
-        try (FileOutputStream fileOutputStream = new FileOutputStream("Bus.xml")) {
+        try (FileOutputStream fileOutputStream = new FileOutputStream(fileName)) {
             xmlWriter.output(doc, fileOutputStream);
         }
 
@@ -125,21 +122,25 @@ public class AutoP
     public int size() {
         return  arrayList.size();
     }
-
     @Async
-    public double calculatePercentile(double percentile) {
+    public double calculatePercentile(int percentile) throws IOException, JDOMException {
+        giveElement(fileName);
         List<Bus> sortedbusAll = getBusAll();
-        double output = 0;
-        if (sortedbusAll.size() != 0) {
-            Collections.sort(sortedbusAll, (user1, user2) -> Integer.compare(user1.getCapacity(), user2.getCapacity()));
-            List<Integer> messageCounts = new ArrayList<>();
-            for (Bus user : sortedbusAll) {
-                messageCounts.add(user.getCapacity());
-            }
-            int index = (int) (percentile * (messageCounts.size() - 1));
-            int percentileValue = messageCounts.get(index);
-            output =(double) percentileValue;
+        Collections.sort(sortedbusAll, (bus1, bus2) -> Integer.compare(bus1.getCurrentAmount(), bus2.getCurrentAmount()));
+        List<Double> currentAmiutnList = new ArrayList<>();
+        for (Bus currentBus : sortedbusAll) {
+            currentAmiutnList.add((double) currentBus.getCurrentAmount());
         }
+        if (currentAmiutnList == null || currentAmiutnList.isEmpty() || percentile < 0 || percentile > 100) {
+            throw new IllegalArgumentException("Invalid input data or percentile value");
+        }
+        double[] dataArray = currentAmiutnList.stream()
+                .mapToDouble(Double::doubleValue)
+                .toArray();
+        Percentile percentileCalculator = new Percentile();
+        percentileCalculator.setData(dataArray);
+        double output = percentileCalculator.evaluate(percentile);
+        System.out.println(output);
         return output;
     }
 }
